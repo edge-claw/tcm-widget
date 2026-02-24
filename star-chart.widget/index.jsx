@@ -153,100 +153,141 @@ function renderStarMapSVG(data, size) {
   const seasonColor = SEASON_GLOW_COLORS[season] || '#7CB98F';
   const dizhiIdx = DI_ZHI.indexOf(monthDizhi);
   const termIdx = SOLAR_TERMS.indexOf(termName);
+  const FF = "font-family=\"PingFang SC, Hiragino Sans GB, sans-serif\"";
 
   const stars = projectDipperStars(65);
 
-  // 构建北斗连线和星点 SVG
+  // ── 北斗连线（加粗提亮）──
   const bowlLinesStr = BOWL_LINES.map(([a, b]) =>
-    `<line x1="${stars[a].x}" y1="${stars[a].y}" x2="${stars[b].x}" y2="${stars[b].y}" stroke="#4466aa" stroke-width="1.2" stroke-opacity="0.6"/>`
+    `<line x1="${stars[a].x}" y1="${stars[a].y}" x2="${stars[b].x}" y2="${stars[b].y}" stroke="#6688cc" stroke-width="1.8" stroke-opacity="0.8"/>`
   ).join('');
   const handleLinesStr = HANDLE_LINES.map(([a, b]) =>
-    `<line x1="${stars[a].x}" y1="${stars[a].y}" x2="${stars[b].x}" y2="${stars[b].y}" stroke="#5588cc" stroke-width="1.5" stroke-opacity="0.7"/>`
+    `<line x1="${stars[a].x}" y1="${stars[a].y}" x2="${stars[b].x}" y2="${stars[b].y}" stroke="#7799dd" stroke-width="2" stroke-opacity="0.85"/>`
   ).join('');
 
   const starsStr = stars.map((star) => {
     const isHandle = star.role === 'handle' || star.role === 'tip';
-    const fill = isHandle ? seasonColor : '#aabbee';
-    return `<circle cx="${star.x}" cy="${star.y}" r="${star.size + (isHandle ? 1 : 0)}" fill="${fill}" fill-opacity="0.9" filter="url(#glow)"/>` +
-      `<text x="${star.x}" y="${star.y - star.size - 4}" text-anchor="middle" fill="#667799" font-size="6px">${star.name}</text>`;
+    const fill = isHandle ? seasonColor : '#bbccff';
+    const sz = star.size + (isHandle ? 1.5 : 0.5);
+    return `<circle cx="${star.x}" cy="${star.y}" r="${sz}" fill="${fill}" filter="url(#glow)"/>` +
+      `<text x="${star.x}" y="${star.y - sz - 5}" text-anchor="middle" fill="#99aabb" font-size="8px" ${FF}>${star.name}</text>`;
   }).join('');
 
   // 箭头
-  const tip = stars[6];
-  const prev = stars[5];
-  const dx = tip.x - prev.x;
-  const dy = tip.y - prev.y;
+  const tip = stars[6], prev = stars[5];
+  const dx = tip.x - prev.x, dy = tip.y - prev.y;
   const len = Math.sqrt(dx * dx + dy * dy);
-  const nx = dx / len;
-  const ny = dy / len;
-  const arrowTip = { x: tip.x + nx * 15, y: tip.y + ny * 15 };
-  const arrowL = { x: arrowTip.x - nx * 6 + ny * 4, y: arrowTip.y - ny * 6 - nx * 4 };
-  const arrowR = { x: arrowTip.x - nx * 6 - ny * 4, y: arrowTip.y - ny * 6 + nx * 4 };
-  const arrowStr = `<polygon points="${arrowTip.x},${arrowTip.y} ${arrowL.x},${arrowL.y} ${arrowR.x},${arrowR.y}" fill="${seasonColor}" fill-opacity="0.7" filter="url(#glow)"/>`;
+  const nx = dx / len, ny = dy / len;
+  const arrowTip = { x: tip.x + nx * 18, y: tip.y + ny * 18 };
+  const arrowL = { x: arrowTip.x - nx * 7 + ny * 5, y: arrowTip.y - ny * 7 - nx * 5 };
+  const arrowR = { x: arrowTip.x - nx * 7 - ny * 5, y: arrowTip.y - ny * 7 + nx * 5 };
+  const arrowStr = `<polygon points="${arrowTip.x},${arrowTip.y} ${arrowL.x},${arrowL.y} ${arrowR.x},${arrowR.y}" fill="${seasonColor}" filter="url(#glow)"/>`;
 
-  // 地支环
+  // ── 散点星场背景 ──
+  let bgStars = '';
+  const seed = [37,73,11,89,53,97,23,67,41,83,19,71,59,31,79,47,13,61,43,29,91,7,17,3];
+  for (let i = 0; i < 60; i++) {
+    const sx = (seed[i % 24] * (i + 7) * 13) % size;
+    const sy = (seed[(i + 5) % 24] * (i + 3) * 17) % size;
+    const sr = 0.3 + (i % 3) * 0.3;
+    const so = 0.15 + (i % 4) * 0.08;
+    bgStars += `<circle cx="${sx}" cy="${sy}" r="${sr}" fill="#aabbdd" opacity="${so}"/>`;
+  }
+
+  // ── 四象彩色弧带（最外环可见弧线）──
+  const arcR = 170;
+  let groupArcStr = '';
+  GROUP_ORDER.forEach((group, gi) => {
+    const color = GROUP_COLORS[group];
+    const indices = [0,7,21,14]; // 苍龙=0, 朱雀=21(mapped to gi), 白虎=14, 玄武=7
+    const startI = [0, 21, 14, 7][gi];
+    for (let j = 0; j < 7; j++) {
+      const i = startI + j;
+      const a1 = posAngle(i, 28);
+      const a2 = posAngle(i + 1, 28);
+      const x1 = Math.cos(a1) * arcR, y1 = Math.sin(a1) * arcR;
+      const x2 = Math.cos(a2) * arcR, y2 = Math.sin(a2) * arcR;
+      groupArcStr += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3" opacity="0.25"/>`;
+    }
+    // 弧外点标记
+    for (let j = 0; j < 7; j++) {
+      const i = startI + j;
+      const a = posAngle(i + 0.5, 28);
+      const x = Math.cos(a) * arcR, y = Math.sin(a) * arcR;
+      const isCur = i === currentMansionIdx;
+      if (isCur) {
+        groupArcStr += `<circle cx="${x}" cy="${y}" r="5" fill="${color}" opacity="0.8" filter="url(#strong-glow)"/>`;
+      } else {
+        groupArcStr += `<circle cx="${x}" cy="${y}" r="1.5" fill="${color}" opacity="0.4"/>`;
+      }
+    }
+  });
+
+  // ── 地支环（提亮放大）──
   const dizhiStr = DI_ZHI.map((dz, i) => {
     const isCurrent = i === dizhiIdx;
     const midA = posAngle(i + 0.5, 12);
-    const r = 187;
-    const x = Math.cos(midA) * r;
-    const y = Math.sin(midA) * r;
-    return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="${isCurrent ? '#8899cc' : '#334'}" font-size="9px" font-weight="${isCurrent ? 'bold' : 'normal'}">${dz}</text>`;
+    const r = 190;
+    const x = Math.cos(midA) * r, y = Math.sin(midA) * r;
+    return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="${isCurrent ? '#bbccee' : '#556677'}" font-size="${isCurrent ? '12px' : '10px'}" font-weight="${isCurrent ? 'bold' : 'normal'}" ${isCurrent ? 'filter="url(#glow)"' : ''} ${FF}>${dz}</text>`;
   }).join('');
 
-  // 星宿环
+  // ── 星宿环（显著提亮放大）──
   const mansionStr = MANSIONS.map((m, i) => {
     const color = GROUP_COLORS[m.group] || '#888';
     const isCurrent = i === currentMansionIdx;
     const midA = posAngle(i + 0.5, 28);
-    const labelR = 157;
-    const x = Math.cos(midA) * labelR;
-    const y = Math.sin(midA) * labelR;
-
-    // 高亮当前星宿的点
-    const dotR = 142;
-    const dotA = posAngle(i + 0.5, 28);
-    const dotX = Math.cos(dotA) * dotR;
-    const dotY = Math.sin(dotA) * dotR;
-
+    const labelR = 152;
+    const x = Math.cos(midA) * labelR, y = Math.sin(midA) * labelR;
     let svg = '';
     if (isCurrent) {
-      svg += `<circle cx="${dotX}" cy="${dotY}" r="4" fill="${color}" fill-opacity="0.6" filter="url(#strong-glow)"/>`;
-      svg += `<circle cx="${dotX}" cy="${dotY}" r="8" fill="none" stroke="${color}" stroke-width="0.5" opacity="0.3"/>`;
+      // 当前值宿：大发光圈 + 亮白文字
+      const dr = 170;
+      const dx = Math.cos(midA) * dr, dy = Math.sin(midA) * dr;
+      svg += `<circle cx="${dx}" cy="${dy}" r="14" fill="${color}" opacity="0.12" filter="url(#strong-glow)"/>`;
     }
-
-    svg += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="${isCurrent ? '#ffffff' : color}" fill-opacity="${isCurrent ? 1 : 0.5}" font-size="${isCurrent ? '10px' : '8px'}" font-weight="${isCurrent ? 'bold' : 'normal'}" ${isCurrent ? 'filter="url(#glow)"' : ''}>${m.short}</text>`;
+    svg += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="${isCurrent ? '#ffffff' : color}" fill-opacity="${isCurrent ? 1 : 0.75}" font-size="${isCurrent ? '13px' : '10px'}" font-weight="${isCurrent ? 'bold' : '500'}" ${isCurrent ? 'filter="url(#glow)"' : ''} ${FF}>${m.short}</text>`;
     return svg;
   }).join('');
 
-  // 节气环
+  // ── 节气环（提亮放大）──
   const termStr = SOLAR_TERMS.map((t, i) => {
     const isCurrent = i === termIdx;
     const midA = posAngle(i + 0.5, 24);
-    const labelR = 129;
-    const x = Math.cos(midA) * labelR;
-    const y = Math.sin(midA) * labelR;
-    return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="${isCurrent ? '#aabbdd' : '#334'}" font-size="7px" font-weight="${isCurrent ? 'bold' : 'normal'}">${t.length <= 2 ? t : t.slice(0, 2)}</text>`;
+    const labelR = 130;
+    const x = Math.cos(midA) * labelR, y = Math.sin(midA) * labelR;
+    return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="${isCurrent ? '#ddeeff' : '#556677'}" font-size="${isCurrent ? '9px' : '7.5px'}" font-weight="${isCurrent ? 'bold' : 'normal'}" ${isCurrent ? 'filter="url(#glow)"' : ''} ${FF}>${t.length <= 2 ? t : t.slice(0, 2)}</text>`;
   }).join('');
 
-  // 圆环刻度线
-  const circleRings = [80, 120, 140, 175, 195].map(r =>
-    `<circle r="${r}" fill="none" stroke="#1a2040" stroke-width="0.5"/>`
+  // ── 圆环（提亮）──
+  const circleRings = [
+    [80, '#1a2a50', 0.6],
+    [120, '#1a2a50', 0.5],
+    [140, '#1a2a50', 0.5],
+    [175, '#2a3a60', 0.6],
+    [195, '#1a2a50', 0.4],
+  ].map(([r, c, o]) =>
+    `<circle r="${r}" fill="none" stroke="${c}" stroke-width="0.8" opacity="${o}"/>`
   ).join('');
 
-  // 四象弧线标记
-  const groupArcs = GROUP_ORDER.map((group, gi) => {
+  // ── 十字准星线（方位标记）──
+  const crossLines = `
+    <line x1="0" y1="-195" x2="0" y2="-80" stroke="#2a3a60" stroke-width="0.5" opacity="0.3"/>
+    <line x1="0" y1="80" x2="0" y2="195" stroke="#2a3a60" stroke-width="0.5" opacity="0.3"/>
+    <line x1="-195" y1="0" x2="-80" y2="0" stroke="#2a3a60" stroke-width="0.5" opacity="0.3"/>
+    <line x1="80" y1="0" x2="195" y2="0" stroke="#2a3a60" stroke-width="0.5" opacity="0.3"/>`;
+
+  // ── 四象名称标记（提亮放大）──
+  const groupLabels = GROUP_ORDER.map((group, gi) => {
     const color = GROUP_COLORS[group];
-    const startIdx = gi * 7;
-    // 简化：在外环画四段圆弧标记
-    const startA = posAngle(startIdx + 3.5, 28);
-    const r = 176;
-    const x = Math.cos(startA) * r;
-    const y = Math.sin(startA) * r;
-    return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="${color}" fill-opacity="0.3" font-size="7px">${GROUP_SHORT[group]}</text>`;
+    const startI = [0, 21, 14, 7][gi];
+    const midA = posAngle(startI + 3.5, 28);
+    const r = 108;
+    const x = Math.cos(midA) * r, y = Math.sin(midA) * r;
+    return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="${color}" fill-opacity="0.45" font-size="10px" font-weight="600" ${FF}>${GROUP_SHORT[group]}</text>`;
   }).join('');
 
-  // 信息面板
+  // ── 信息面板 ──
   const mColor = GROUP_COLORS[MANSIONS[currentMansionIdx]?.group] || '#888';
   const dateStr = data?.date?.solar || '';
   const lunarStr = data?.date?.lunar || '';
@@ -255,27 +296,38 @@ function renderStarMapSVG(data, size) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
   <defs>
     <radialGradient id="bg-gradient" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#0a0e1a"/>
-      <stop offset="60%" stop-color="#060a14"/>
-      <stop offset="100%" stop-color="#020408"/>
+      <stop offset="0%" stop-color="#0e1428"/>
+      <stop offset="50%" stop-color="#0a1020"/>
+      <stop offset="100%" stop-color="#060a16"/>
     </radialGradient>
     <filter id="glow">
       <feGaussianBlur stdDeviation="3" result="blur"/>
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
     <filter id="strong-glow">
-      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feGaussianBlur stdDeviation="5" result="blur"/>
       <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="text-glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
 
   <rect width="${size}" height="${size}" rx="12" fill="url(#bg-gradient)"/>
+  <!-- 边框 -->
+  <rect width="${size}" height="${size}" rx="12" fill="none" stroke="#1a2a50" stroke-width="1" opacity="0.5"/>
+
+  <!-- 星场 -->
+  ${bgStars}
 
   <g transform="translate(${cx},${cy})">
+    ${crossLines}
     ${circleRings}
+    ${groupArcStr}
     ${dizhiStr}
     ${mansionStr}
-    ${groupArcs}
+    ${groupLabels}
     ${termStr}
 
     <g transform="rotate(${handleAngle})">
@@ -287,15 +339,15 @@ function renderStarMapSVG(data, size) {
   </g>
 
   <!-- 左下角：日期 -->
-  <text x="14" y="${size - 46}" fill="#556688" font-size="10px" font-family="PingFang SC, Hiragino Sans GB, sans-serif">${dateStr}</text>
-  <text x="14" y="${size - 32}" fill="#445566" font-size="9px" font-family="PingFang SC, Hiragino Sans GB, sans-serif">${lunarStr}</text>
+  <text x="14" y="${size - 46}" fill="#8899aa" font-size="11px" ${FF}>${dateStr}</text>
+  <text x="14" y="${size - 31}" fill="#778899" font-size="10px" ${FF}>${lunarStr}</text>
 
   <!-- 右下角：值日星宿 -->
-  <text x="${size - 14}" y="${size - 46}" fill="${mColor}" font-size="11px" font-weight="bold" text-anchor="end" filter="url(#glow)" font-family="PingFang SC, Hiragino Sans GB, sans-serif">${mansionName}</text>
-  <text x="${size - 14}" y="${size - 32}" fill="#445566" font-size="9px" text-anchor="end" font-family="PingFang SC, Hiragino Sans GB, sans-serif">${GROUP_SHORT[MANSIONS[currentMansionIdx]?.group] || ''}</text>
+  <text x="${size - 14}" y="${size - 46}" fill="${mColor}" font-size="13px" font-weight="bold" text-anchor="end" filter="url(#glow)" ${FF}>${mansionName}</text>
+  <text x="${size - 14}" y="${size - 31}" fill="#8899aa" font-size="10px" text-anchor="end" ${FF}>${GROUP_SHORT[MANSIONS[currentMansionIdx]?.group] || ''} · ${mansionData.star || ''}</text>
 
   <!-- 底部中央：斗柄诗句 -->
-  <text x="${cx}" y="${size - 12}" fill="${seasonColor}" font-size="10px" text-anchor="middle" filter="url(#glow)" font-family="PingFang SC, Hiragino Sans GB, sans-serif">${dipperData.directionText || ''}</text>
+  <text x="${cx}" y="${size - 10}" fill="${seasonColor}" font-size="11px" text-anchor="middle" filter="url(#text-glow)" ${FF}>${dipperData.directionText || ''}</text>
 </svg>`;
 }
 
