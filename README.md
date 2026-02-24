@@ -1,4 +1,4 @@
-# tcm-bar
+# tcm-widget
 
 macOS 桌面小组件 **岐黄小助手** 🍃 —— 每日养生提醒，中医智慧浮于桌面。
 
@@ -6,34 +6,7 @@ macOS 桌面小组件 **岐黄小助手** 🍃 —— 每日养生提醒，中�
 
 ![macOS](https://img.shields.io/badge/macOS-only-blue) ![Übersicht](https://img.shields.io/badge/Übersicht-widget-purple) ![License](https://img.shields.io/badge/license-MIT-gray)
 
-## 效果
-
-桌面右上角常驻毛玻璃卡片，显示：
-
-```
-🍃 岐黄小助手              2026-02-24 星期二
-                            丙午年正月初八
-
-3°C  薄雾  💧93%  🌬4km/h
-
-──────────────────────────────────────
-雨水                        春季
-
-   初候 · 獭祭鱼 — 鱼肥而出，獭先祭后食
-▸ 二候 · 候雁北 — 自南而北也
-   三候 · 草木萌动 — 是为可耕之候
-
-──────────────────────────────────────
-《黄帝内经》春季养生
-
-「春三月，此谓发陈，天地俱生，万物以荣...」
-
-😴 夜卧早起，披散头发          😊 保持愉悦，多给予少索取
-🏃 庭院散步，舒展身体          🥗 宜甘淡，少酸涩
-
-──────────────────────────────────────
-☯ 水运太过 · 少阴君火    ⭐ 觜火猴（西宫白虎）
-```
+![preview](preview.png)
 
 ## 数据内容
 
@@ -42,8 +15,7 @@ macOS 桌面小组件 **岐黄小助手** 🍃 —— 每日养生提醒，中�
 - 🌤 实时天气（西安）
 - 🌿 二十四节气 + 七十二物候
 - 📜 《黄帝内经》当季养生原文与起居指导
-- ☯️ 五运六气分析
-- ⭐ 二十八星宿与养生建议
+- ☯️ 五运六气
 
 ## 适用环境
 
@@ -63,8 +35,8 @@ brew install --cask ubersicht
 # 或从官网下载: http://tracesof.net/uebersicht/
 
 # 2. 克隆仓库
-git clone https://github.com/shaoguos/tcm-bar.git
-cd tcm-bar
+git clone https://github.com/shaoguos/tcm-widget.git
+cd tcm-widget
 
 # 3. 修改 fetch_tcm.sh 中的 SSH 地址为你自己的服务器
 vim fetch_tcm.sh
@@ -79,7 +51,7 @@ open -a Übersicht
 ## 文件说明
 
 ```
-tcm-bar/
+tcm-widget/
 ├── tcm-widget.widget/
 │   └── index.jsx          # Übersicht 桌面组件（JSX + CSS）
 ├── fetch_tcm.sh           # SSH 数据拉取脚本
@@ -92,6 +64,10 @@ tcm-bar/
 - **数据传输**: SSH + `cat latest.json`（轻量，无需 HTTP 服务）
 - **刷新频率**: 每 30 分钟
 - **视觉**: 毛玻璃背景 + 暗色主题，与 macOS 桌面融合
+
+## 相关项目
+
+- [璇玑星图](https://github.com/shaoguos/star-chart) — 配套桌面星图组件（北斗七星 + 二十八宿 + 节气环）
 
 ## License
 
