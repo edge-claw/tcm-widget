@@ -150,19 +150,9 @@ export const className = `
   }
 
   .footer {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: #666;
+    font-size: 12px;
+    color: #90a4ae;
     margin-top: 4px;
-  }
-
-  .mansion {
-    color: #90a4ae;
-  }
-
-  .wuyun {
-    color: #90a4ae;
   }
 
   .error {
@@ -201,7 +191,6 @@ export const render = ({ output, error }) => {
   const nj = d.neijing || {};
   const guidance = nj.guidance || {};
   const wy = d.wuyunLiuqi || {};
-  const ms = d.mansion || {};
 
   const originalShort = (nj.original || "").length > 50
     ? nj.original.substring(0, 50) + "..."
@@ -267,10 +256,9 @@ export const render = ({ output, error }) => {
 
       <div className="divider" />
 
-      {/* 底部 */}
+      {/* 底部：五运六气 */}
       <div className="footer">
-        <span className="wuyun">☯ {wy.wuyun} · {wy.siTian}</span>
-        <span className="mansion">⭐ {ms.name}（{ms.group}）</span>
+        ☯ {wy.wuyun} · 司天{wy.siTian} · 在泉{wy.zaiQuan}
       </div>
     </div>
   );
