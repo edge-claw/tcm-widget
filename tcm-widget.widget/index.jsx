@@ -1,12 +1,12 @@
 // 岐黄小助手 - macOS 桌面组件 (Übersicht)
 // 每 30 分钟从 AWS 拉取中医养生数据
 
-export const command = `/Users/chaishaoguo/tcm-bar/fetch_tcm.sh`;
-export const refreshFrequency = 1800000; // 30 分钟
+export const command = `cat /Users/chaishaoguo/.tcm-bar-cache.json 2>/dev/null`;
+export const refreshFrequency = 600000; // 10 分钟读一次缓存
 
 export const className = `
   top: 40px;
-  right: 30px;
+  left: 30px;
   width: 380px;
   font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", sans-serif;
   color: #e8e4df;
@@ -108,12 +108,20 @@ export const className = `
   }
 
   .phenology-current {
-    color: #fff;
-    font-weight: 500;
+    color: #a5d6a7;
+    font-weight: 600;
+    font-size: 14px;
+    background: rgba(129, 199, 132, 0.1);
+    border-left: 3px solid #66bb6a;
+    padding: 3px 0 3px 8px;
+    margin: 2px 0;
+    border-radius: 0 6px 6px 0;
+    text-shadow: 0 0 8px rgba(129, 199, 132, 0.3);
   }
 
   .phenology-dim {
-    color: #777;
+    color: #666;
+    padding-left: 14px;
   }
 
   .neijing {
@@ -212,7 +220,7 @@ export const render = ({ output, error }) => {
 
       {/* 天气 */}
       <div className="weather-row">
-        <span className="weather-temp">{weather.temperature}</span>
+        <span className="weather-temp">西安 {weather.temperature}</span>
         <span>{weather.condition}</span>
         <span>💧{weather.humidity}</span>
         <span>🌬{weather.windSpeed}</span>
@@ -227,11 +235,19 @@ export const render = ({ output, error }) => {
           <span className="term-season">{term.season}季</span>
         </div>
         <div className="phenology">
-          {allPhen.map((p, i) => (
-            <div key={i} className={p.name === phen.name ? "phenology-current" : "phenology-dim"}>
-              {p.name === phen.name ? "▸ " : "  "}{p.phase} · {p.name} — {p.description}
-            </div>
-          ))}
+          {allPhen.map((p, i) => {
+            const isCurrent = p.name === (phen.current || phen.name);
+            const style = isCurrent
+              ? { color: '#b0b0b0', fontWeight: 500,
+                  borderLeft: '2px solid rgba(129,199,132,0.5)',
+                  paddingLeft: '10px', margin: '1px 0' }
+              : { color: '#666', paddingLeft: '16px' };
+            return (
+              <div key={i} style={style}>
+                {isCurrent ? "▸ " : ""}{p.phase} · {p.name} — {p.description}
+              </div>
+            );
+          })}
         </div>
       </div>
 
