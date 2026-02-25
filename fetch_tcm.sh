@@ -4,8 +4,12 @@ CACHE="$HOME/.tcm-bar-cache.json"
 TMP_TCM="/tmp/tcm-bar-raw.json"
 TMP_WEATHER="/tmp/tcm-bar-weather.json"
 
-# 1. 从 qi-huang.com 拉取 TCM 数据
-curl -s --max-time 10 "https://qi-huang.com/data/latest.json" > "$TMP_TCM" 2>/dev/null
+# 加载环境变量（Übersicht 非交互式 shell 不会自动加载）
+[ -f "$HOME/.bashrc" ] && source "$HOME/.bashrc" 2>/dev/null
+API_KEY="${QIHUANG_API_KEY:-}"
+
+# 1. 从 qi-huang.com 拉取 TCM 数据（需 API Key）
+curl -s --max-time 10 "https://qi-huang.com/data/latest.json?key=${API_KEY}" > "$TMP_TCM" 2>/dev/null
 
 if [ ! -s "$TMP_TCM" ]; then
     cp "$CACHE" "$TMP_TCM" 2>/dev/null
