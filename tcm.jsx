@@ -1,7 +1,7 @@
 // 岐黄小助手 - macOS 桌面组件 (Übersicht)
 // 每 30 分钟从 AWS 拉取中医养生数据
 
-export const command = `/Users/chaishaoguo/tcm-bar/fetch_tcm.sh`;
+export const command = `$HOME/cc/tcm-widget/fetch_tcm.sh`;
 export const refreshFrequency = 1800000; // 30 分钟
 
 export const className = `
