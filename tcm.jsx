@@ -1,5 +1,5 @@
-// 岐黄小助手 - macOS 桌面组件 (Übersicht)
-// 每 30 分钟从 AWS 拉取中医养生数据
+// 岐黄令 - macOS 桌面组件 (Übersicht)
+// 每 30 分钟从 qi-huang.com 拉取中医养生数据
 
 export const command = `$HOME/cc/tcm-widget/fetch_tcm.sh`;
 export const refreshFrequency = 1800000; // 30 分钟
@@ -157,12 +157,13 @@ export const className = `
     margin-top: 4px;
   }
 
-  .mansion {
+  .footer-left {
     color: #90a4ae;
   }
 
-  .wuyun {
-    color: #90a4ae;
+  .footer-right {
+    color: #555;
+    font-size: 10px;
   }
 
   .error {
@@ -177,7 +178,7 @@ export const render = ({ output, error }) => {
   if (error || !output || output.trim() === "") {
     return (
       <div className="container">
-        <div className="error">🍃 岐黄小助手 · 数据加载中...</div>
+        <div className="error">🍃 岐黄令 · 数据加载中...</div>
       </div>
     );
   }
@@ -201,7 +202,6 @@ export const render = ({ output, error }) => {
   const nj = d.neijing || {};
   const guidance = nj.guidance || {};
   const wy = d.wuyunLiuqi || {};
-  const ms = d.mansion || {};
 
   const originalShort = (nj.original || "").length > 50
     ? nj.original.substring(0, 50) + "..."
@@ -211,7 +211,7 @@ export const render = ({ output, error }) => {
     <div className="container">
       {/* 头部 */}
       <div className="header">
-        <div className="title">🍃 岐黄小助手</div>
+        <div className="title">🍃 岐黄令</div>
         <div className="date-info">
           <div>{date.solar} {date.weekday}</div>
           <div>{date.lunar}</div>
@@ -220,7 +220,7 @@ export const render = ({ output, error }) => {
 
       {/* 天气 */}
       <div className="weather-row">
-        <span className="weather-temp">{weather.temperature}</span>
+        <span className="weather-temp">西安 {weather.temperature}</span>
         <span>{weather.condition}</span>
         <span>💧{weather.humidity}</span>
         <span>🌬{weather.windSpeed}</span>
@@ -235,11 +235,19 @@ export const render = ({ output, error }) => {
           <span className="term-season">{term.season}季</span>
         </div>
         <div className="phenology">
-          {allPhen.map((p, i) => (
-            <div key={i} className={p.name === phen.name ? "phenology-current" : "phenology-dim"}>
-              {p.name === phen.name ? "▸ " : "  "}{p.phase} · {p.name} — {p.description}
-            </div>
-          ))}
+          {allPhen.map((p, i) => {
+            const isCurrent = p.name === (phen.current || phen.name);
+            const style = isCurrent
+              ? { color: '#b0b0b0', fontWeight: 500,
+                  borderLeft: '2px solid rgba(129,199,132,0.5)',
+                  paddingLeft: '10px', margin: '1px 0' }
+              : { color: '#666', paddingLeft: '16px' };
+            return (
+              <div key={i} style={style}>
+                {isCurrent ? "▸ " : ""}{p.phase} · {p.name} — {p.description}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -259,10 +267,10 @@ export const render = ({ output, error }) => {
 
       <div className="divider" />
 
-      {/* 底部 */}
+      {/* 底部：五运六气 + 来源 */}
       <div className="footer">
-        <span className="wuyun">☯ {wy.wuyun} · {wy.siTian}</span>
-        <span className="mansion">⭐ {ms.name}（{ms.group}）</span>
+        <span className="footer-left">☯ {wy.wuyun} · 司天{wy.siTian} · 在泉{wy.zaiQuan}</span>
+        <span className="footer-right">qi-huang.com</span>
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
-// 岐黄小助手 - macOS 桌面组件 (Übersicht)
-// 每 30 分钟从 AWS 拉取中医养生数据
+// 岐黄令 - macOS 桌面组件 (Übersicht)
+// 每 30 分钟从 qi-huang.com 拉取中医养生数据
 
-export const command = `cat $HOME/.tcm-bar-cache.json 2>/dev/null`;
-export const refreshFrequency = 600000; // 10 分钟读一次缓存
+export const command = `$HOME/cc/tcm-widget/fetch_tcm.sh`;
+export const refreshFrequency = 1800000; // 30 分钟
 
 export const className = `
   top: 40px;
@@ -150,9 +150,20 @@ export const className = `
   }
 
   .footer {
-    font-size: 12px;
-    color: #90a4ae;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #666;
     margin-top: 4px;
+  }
+
+  .footer-left {
+    color: #90a4ae;
+  }
+
+  .footer-right {
+    color: #555;
+    font-size: 10px;
   }
 
   .error {
@@ -167,7 +178,7 @@ export const render = ({ output, error }) => {
   if (error || !output || output.trim() === "") {
     return (
       <div className="container">
-        <div className="error">🍃 岐黄小助手 · 数据加载中...</div>
+        <div className="error">🍃 岐黄令 · 数据加载中...</div>
       </div>
     );
   }
@@ -200,7 +211,7 @@ export const render = ({ output, error }) => {
     <div className="container">
       {/* 头部 */}
       <div className="header">
-        <div className="title">🍃 岐黄小助手</div>
+        <div className="title">🍃 岐黄令</div>
         <div className="date-info">
           <div>{date.solar} {date.weekday}</div>
           <div>{date.lunar}</div>
@@ -256,9 +267,10 @@ export const render = ({ output, error }) => {
 
       <div className="divider" />
 
-      {/* 底部：五运六气 */}
+      {/* 底部：五运六气 + 来源 */}
       <div className="footer">
-        ☯ {wy.wuyun} · 司天{wy.siTian} · 在泉{wy.zaiQuan}
+        <span className="footer-left">☯ {wy.wuyun} · 司天{wy.siTian} · 在泉{wy.zaiQuan}</span>
+        <span className="footer-right">qi-huang.com</span>
       </div>
     </div>
   );
