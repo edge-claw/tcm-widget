@@ -1,14 +1,11 @@
 #!/bin/bash
-# 从 AWS 拉取岐黄每日数据 + Open-Meteo 实时天气，合并输出
+# 从 qi-huang.com 拉取岐黄每日数据 + Open-Meteo 实时天气，合并输出
 CACHE="$HOME/.tcm-bar-cache.json"
 TMP_TCM="/tmp/tcm-bar-raw.json"
 TMP_WEATHER="/tmp/tcm-bar-weather.json"
-SSH_KEY="$HOME/.ssh/id_ed25519"
 
-# 1. 拉取 TCM 数据
-ssh -i "$SSH_KEY" -o ProxyCommand=none -o ConnectTimeout=10 -o BatchMode=yes -o StrictHostKeyChecking=no \
-    ubuntu@100.90.249.117 \
-    'cat ~/.openclaw/workspace-tcm/data/latest.json' > "$TMP_TCM" 2>/dev/null
+# 1. 从 qi-huang.com 拉取 TCM 数据
+curl -s --max-time 10 "https://qi-huang.com/data/latest.json" > "$TMP_TCM" 2>/dev/null
 
 if [ ! -s "$TMP_TCM" ]; then
     cp "$CACHE" "$TMP_TCM" 2>/dev/null
