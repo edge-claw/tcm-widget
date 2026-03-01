@@ -25,9 +25,10 @@ curl -s --max-time 8 \
     "https://api.open-meteo.com/v1/forecast?latitude=34.26&longitude=108.94&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m" \
     > "$TMP_WEATHER" 2>/dev/null
 
-# 3. 合并
+# 3. 合并（修正日期 + 天气）
 python3 -c "
 import json
+from datetime import datetime
 
 # WMO 天气代码 -> 中文描述
 WMO = {
@@ -40,6 +41,23 @@ WMO = {
 }
 
 tcm = json.load(open('$TMP_TCM'))
+
+# 用本地日期覆盖 API 可能返回的过期日期
+now = datetime.now()
+weekdays = ['星期一','星期二','星期三','星期四','星期五','星期六','星期日']
+if 'date' not in tcm:
+    tcm['date'] = {}
+tcm['date']['solar'] = now.strftime('%Y-%m-%d')
+tcm['date']['weekday'] = weekdays[now.weekday()]
+try:
+    import cnlunar
+    a = cnlunar.Lunar(now, godType='8char')
+    month = a.lunarMonthCn.replace('大','').replace('小','')
+    tcm['date']['lunar'] = f'{a.year8Char}年{month}{a.lunarDayCn}'
+    tcm['date']['ganZhi'] = f'{a.year8Char}年'
+except:
+    pass  # cnlunar 不可用时保留 API 原值
+
 try:
     w = json.load(open('$TMP_WEATHER'))
     c = w['current']
